@@ -1,4 +1,4 @@
-######################################################################################
+# #############################################################################
 # NUMBTHY.PY
 # Basic Number Theory functions implemented in Python
 # Note: Version 0.7 changes some function names to align with SAGE
@@ -7,88 +7,107 @@
 # Date: 18 Nov 2014
 # Version 0.81
 # License: Simplified BSD (see details at bottom)
-######################################################################################
+# #############################################################################
 """Basic number theory functions.
-	Functions implemented are:
-		gcd(a,b) - Compute the greatest common divisor of a and b.
-		xgcd(a,b) - Find [g,x,y] such that g=gcd(a,b) and g = ax + by.
-		power_mod(b,e,n) - Compute b^e mod n efficiently.
-		inverse_mod(b,n) - Compute 1/b mod n.
-		is_prime(n) - Test whether n is prime using a variety of pseudoprime tests.
-		euler_phi(n) - Compute Euler's Phi function of n - the number of integers strictly less than n which are coprime to n.
-		carmichael_lambda(n) - Compute Carmichael's Lambda function of n - the smallest exponent e such that b**e = 1 for all b coprime to n.
-		factor(n) - Return a sorted list of the prime factors of n with exponents.
-		prime_divisors(n) - Returns a sorted list of the prime divisors of n.
-		is_primitive_root(g,n) - Test whether g is primitive - generates the group of units mod n.
-		sqrtmod(a,n) - Compute sqrt(a) mod n using various algorithms.
-		TSRsqrtmod(a,grpord,n) - Compute sqrt(a) mod n using Tonelli-Shanks-RESSOL algorithm.
-	Usage and help for the module is printed with the command help(numbthy) and a list of functions in the module with the command dir(numbthy).
-	Some functions which are used internally and names used prior to ver 0.7 of existing functions are:
-		isprime(n) - Test whether n is prime using a variety of pseudoprime tests. (Renamed is_prime(b,n) in ver 0.7)
-		isprimeF(n,b) - Test whether n is prime or a Fermat pseudoprime to base b.
-		isprimeE(n,b) - Test whether n is prime or an Euler pseudoprime to base b.
-		factorone(n) - Find a factor of n using a variety of methods.
-		factors(n) - Return a sorted list of the prime factors of n. (Prior to ver 0.7 named factor(n))
-		factorPR(n) - Find a factor of n using the Pollard Rho method.
-		invmod(b,n) - Compute 1/b mod n. (Renamed inverse_mod(b,n) in ver 0.7)
-		powmod(b,e,n) - Compute b^e mod n efficiently. (Renamed power_mod(b,e,n) in ver 0.7)
-		eulerphi(n) - Compute Euler's Phi function of n - the number of integers strictly less than n which are coprime to n. (Renamed euler_phi(n) in ver 0.7)
-		carmichaellambda(n) - Compute Carmichael's Lambda function of n - the smallest exponent e such that b**e = 1 for all b coprime to n.  (Renamed carmichael_lambda(n) in ver 0.7)
-		isprimitive(g,n) - Test whether g is primitive mod n.  (Renamed is_primitive_root(g,n) in ver 0.8)
+    Functions implemented are:
+        gcd(a, b) - Compute the greatest common divisor of a and b.
+        xgcd(a, b) - Find [g, x, y] such that g = gcd(a, b) and g = ax + by.
+        power_mod(b, e, n) - Compute b^e mod n efficiently.
+        inverse_mod(b, n) - Compute 1/b mod n.
+        is_prime(n) - Test whether n is prime using a variety of pseudo prime
+            tests.
+        euler_phi(n) - Compute Euler's Phi function of n - the number of
+            integers strictly less than n which are coprime to n.
+        carmichael_lambda(n) - Compute Carmichael's Lambda function of n - the
+            smallest exponent e such that b**e = 1 for all b coprime to n.
+        factor(n) - Return a sorted list of the prime factors of n with
+            exponents.
+        prime_divisors(n) - Returns a sorted list of the prime divisors of n.
+        is_primitive_root(g, n) - Test whether g is primitive - generates the
+            group of units mod n.
+        sqrtmod(a, n) - Compute sqrt(a) mod n using various algorithms.
+        TSRsqrtmod(a, grpord, n) - Compute sqrt(a) mod n using
+            Tonelli-Shanks-RESSOL algorithm.
+    Some functions which are used internally and names used prior to ver 0.7 of
+    existing functions are:
+        isprime(n) - Test whether n is prime using a variety of pseudo prime
+            tests. (Renamed is_prime(b,n) in ver 0.7)
+        isprimeF(n, b) - Test whether n is prime or a Fermat pseudo prime to
+            base b.
+        isprimeE(n, b) - Test whether n is prime or an Euler pseudo prime to
+            base b.
+        factorone(n) - Find a factor of n using a variety of methods.
+        factors(n) - Return a sorted list of the prime factors of n. (Prior to
+            ver 0.7 named factor(n))
+        factorPR(n) - Find a factor of n using the Pollard Rho method.
+        invmod(b, n) - Compute 1/b mod n. (Renamed inverse_mod(b,n) in ver 0.7)
+        powmod(b, e, n) - Compute b^e mod n efficiently. (Renamed
+            power_mod(b, e, n) in ver 0.7)
+        eulerphi(n) - Compute Euler's Phi function of n - the number of
+            integers strictly less than n which are coprime to n. (Renamed
+            euler_phi(n) in ver 0.7)
+        carmichaellambda(n) - Compute Carmichael's Lambda function of n - the
+            smallest exponent e such that b**e = 1 for all b coprime to n.
+            (Renamed carmichael_lambda(n) in ver 0.7)
+        isprimitive(g, n) - Test whether g is primitive mod n. (Renamed
+            is_primitive_root(g,n) in ver 0.8)
 """
+import math  # Use sqrt, floor
+import functools  # Use reduce (Python 2.5+ and 3.x)
 
 __version__ = '0.81'  # Format specified in Python PEP 396
-Version = 'NUMBTHY.PY, version ' + __version__ + ', 18 Nov, 2014, by Robert Campbell, <r.campbel.256@gmail.com>'
+Version = 'NUMBTHY.PY, version ' + __version__ + \
+          ', 18 Nov, 2014, by Robert Campbell, <r.campbel.256@gmail.com>'
 
-import math  # Use sqrt, floor
-import functools # Use reduce (Python 2.5+ and 3.x)
 
-def gcd(a,b):
-	"""gcd(a,b) returns the greatest common divisor of the integers a and b."""
-	if a == 0:
-		return abs(b)
-	return abs(gcd(b % a, a))
+def gcd(a, b):
+    """Greatest common divisor of the integers a and b."""
+    if a == 0:
+        return abs(b)
+    return gcd(b % a, a)
 
-def xgcd(a,b):
-	"""xgcd(a,b) returns a tuple of form (g,x,y), where g is gcd(a,b) and
-	x,y satisfy the equation g = ax + by."""
-	a1=1; b1=0; a2=0; b2=1; aneg=1; bneg=1
-	if(a < 0):
-		a = -a; aneg=-1
-	if(b < 0):
-		b = -b; bneg=-1
-	while (1):
-		quot = -(a // b)
-		a = a % b
-		a1 = a1 + quot*a2; b1 = b1 + quot*b2
-		if(a == 0):
-			return (b, a2*aneg, b2*bneg)
-		quot = -(b // a)
-		b = b % a;
-		a2 = a2 + quot*a1; b2 = b2 + quot*b1
-		if(b == 0):
-			return (a, a1*aneg, b1*bneg)
 
-def power_mod(b,e,n):
-	"""power_mod(b,e,n) computes the eth power of b mod n.
-	(Actually, this is not needed, as pow(b,e,n) does the same thing for positive integers.
-	This will be useful in future for non-integers or inverses.)"""
-	if e<0: # Negative powers can be computed if gcd(b,n)=1
-		e = -e
-		b = inverse_mod(b,n)
-	accum = 1; i = 0; bpow2 = b
-	while ((e>>i)>0):
-		if((e>>i) & 1):
-			accum = (accum*bpow2) % n
-		bpow2 = (bpow2*bpow2) % n
-		i+=1
-	return accum
+def xgcd(x, y):
+    """Extended Euclid's algorithm."""
+    a0, b0 = x // abs(x), 0
+    a1, b1 = 0, y // abs(y)
+    x, y = abs(x), abs(y)
+    q = x // y
+    r = x % y
+    while r > 0:
+        a0, b0, a1, b1 = a1, b1, a0 - q * a1, b0 - q * b1
+        x, y = y, r
+        q = x // y
+        r = x % y
+    return a1, b1, y
 
-def inverse_mod(a,n):
-	"""inverse_mod(b,n) - Compute 1/b mod n."""
-	(g,xa,xb) = xgcd(a,n)
-	if(g != 1): raise ValueError("***** Error *****: {0} has no inverse (mod {1}) as their gcd is {2}, not 1.".format(a,n,g))
-	return xa % n
+
+def power_mod(b, e, n):
+    """Compute the eth power of b mod n.
+
+    Actually, this is not needed, as pow(b, e, n) does the same thing for
+    positive integers. This will be useful in future for non-integers or
+    inverses."""
+    if e < 0:  # Negative powers can be computed if gcd(b,n)=1
+        e = -e
+        b = inverse_mod(b, n)
+    acc = 1
+    while e > 0:
+        if e % 2 == 1:
+            acc = (acc * b) % n
+        b = (b ** 2) % n
+        e = e >> 1
+    return acc
+
+
+def inverse_mod(x, n):
+    """inverse_mod(b,n) - Compute 1/b mod n."""
+    d, a, b = xgcd(x, n)
+    if d != 1:
+        raise ValueError("***** Error *****: {0} has no inverse (mod {1}) as"
+                         "their gcd is {2}, not 1.".format(x, n, d))
+    return a % n
+
 
 def is_prime(n):
 	"""is_prime(n) - Test whether n is prime using a variety of pseudoprime tests."""
@@ -183,7 +202,7 @@ def TSRsqrtmod(a,grpord,p):
 	# Now a*(g**powg) is in cyclic group of odd order non2 - can sqrt directly
 	d = invmod(2,non2)
 	tmp = pow(a*pow(g,gpow,p),d,p)  # sqrt(a*(g**gpow))
-	return (tmp*inverse_mod(pow(g,gpow//2,p),p)) % p  # sqrt(a*(g**gpow))//g**(gpow//2)	
+	return (tmp*inverse_mod(pow(g,gpow//2,p),p)) % p  # sqrt(a*(g**gpow))//g**(gpow//2)
 
 ################ Internally used functions #########################################
 
@@ -254,7 +273,7 @@ def invmod(b,n):
 	return inverse_mod(b,n)
 
 def eulerphi(n):
-	"""eulerphi(n) - Compute Euler's Phi function of n - the number of integers strictly less than n which are coprime to n. 
+	"""eulerphi(n) - Compute Euler's Phi function of n - the number of integers strictly less than n which are coprime to n.
 	(Renamed euler_phi(n) in ver 0.7)"""
 	return euler_phi(n)
 
